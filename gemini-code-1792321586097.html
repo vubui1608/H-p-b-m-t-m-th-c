@@ -1,0 +1,1423 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hộp Bí Mật Ẩm Thực — Giải pháp định mệnh cho chiếc bụng đói</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Be Vietnam Pro', sans-serif;
+            background-color: #0b0f17;
+            color: #e2e8f0;
+            background-image: radial-gradient(circle at 50% 0%, rgba(245, 158, 11, 0.12), transparent 60%);
+        }
+
+        /* Hiệu ứng hộp lơ lửng khi chờ */
+        @keyframes floatBox {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-8px) rotate(1deg); }
+        }
+        .box-floating {
+            animation: floatBox 3s ease-in-out infinite;
+        }
+
+        /* Hiệu ứng lắc hộp mạnh khi đang khui */
+        @keyframes shakeBox {
+            0% { transform: translate(0, 0) rotate(0deg) scale(1); }
+            15% { transform: translate(-10px, -6px) rotate(-8deg) scale(1.04); }
+            30% { transform: translate(10px, 4px) rotate(8deg) scale(1.06); }
+            45% { transform: translate(-12px, 6px) rotate(-10deg) scale(1.08); }
+            60% { transform: translate(12px, -4px) rotate(10deg) scale(1.08); }
+            75% { transform: translate(-8px, -8px) rotate(-6deg) scale(1.1); }
+            90% { transform: translate(8px, 4px) rotate(6deg) scale(1.12); }
+            100% { transform: translate(0, 0) rotate(0deg) scale(1.15); }
+        }
+        .box-shaking {
+            animation: shakeBox 0.45s ease-in-out infinite;
+        }
+
+        /* Hiệu ứng nắp hộp văng mở */
+        .mystery-lid {
+            transition: all 0.55s cubic-bezier(0.34, 1.56, 0.64, 1);
+            transform-origin: center bottom;
+        }
+        .lid-opened {
+            transform: translateY(-55px) rotate(-18deg) scale(0.95);
+            opacity: 0;
+        }
+
+        /* Hiệu ứng thẻ món ăn bay lên từ trong hộp */
+        @keyframes popReveal {
+            0% {
+                opacity: 0;
+                transform: translateY(40px) scale(0.75);
+            }
+            70% {
+                opacity: 1;
+                transform: translateY(-6px) scale(1.03);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+        .dish-card-reveal {
+            animation: popReveal 0.55s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+        }
+
+        /* Hiệu ứng hào quang phát sáng */
+        @keyframes pulseGlow {
+            0%, 100% { opacity: 0.4; transform: scale(1); }
+            50% { opacity: 0.85; transform: scale(1.15); }
+        }
+        .aura-glow {
+            animation: pulseGlow 2s ease-in-out infinite;
+        }
+
+        /* Thanh cuộn tùy chỉnh */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #1e293b; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb { background: #475569; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #f59e0b; }
+    </style>
+</head>
+<body class="min-h-screen pb-14 selection:bg-amber-500 selection:text-slate-950">
+
+    <!-- HEADER -->
+    <header class="border-b border-slate-800/80 bg-slate-900/80 backdrop-blur-md sticky top-0 z-30">
+        <div class="max-w-3xl mx-auto px-4 py-3.5 flex flex-wrap items-center justify-between gap-3">
+            <div class="flex items-center gap-3.5">
+                <div class="w-11 h-11 rounded-2xl bg-gradient-to-br from-amber-400 via-amber-500 to-orange-600 flex items-center justify-center text-2xl shadow-lg shadow-amber-500/25 border border-amber-300/40">
+                    🎁
+                </div>
+                <div>
+                    <h1 class="font-black text-base sm:text-lg tracking-wide text-amber-400 uppercase leading-tight">
+                        HỘP BÍ MẬT ẨM THỰC
+                    </h1>
+                    <p class="text-xs text-slate-400 mt-0.5 font-medium">
+                        Giải pháp định mệnh cho chiếc bụng đói
+                    </p>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-2">
+                <button onclick="switchTab('database')" class="text-xs font-bold bg-slate-800 hover:bg-slate-700 text-amber-400 border border-slate-700 px-3 py-2 rounded-xl transition-all">
+                    + Thêm Món Mới
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- MAIN CONTAINER -->
+    <main class="max-w-3xl mx-auto px-4 mt-6">
+
+        <!-- NAVIGATION TABS -->
+        <div class="grid grid-cols-4 gap-2 bg-slate-900/90 p-1.5 rounded-2xl border border-slate-800 mb-6 shadow-lg">
+            <button onclick="switchTab('spin')" id="tab-btn-spin" class="tab-btn py-2.5 px-2 rounded-xl font-bold text-xs sm:text-sm transition-all bg-amber-500 text-slate-950 shadow-md">
+                🎁 Mở Hộp
+            </button>
+            <button onclick="switchTab('playlists')" id="tab-btn-playlists" class="tab-btn py-2.5 px-2 rounded-xl font-bold text-xs sm:text-sm transition-all text-slate-400 hover:text-slate-200">
+                🎵 Playlist
+            </button>
+            <button onclick="switchTab('database')" id="tab-btn-database" class="tab-btn py-2.5 px-2 rounded-xl font-bold text-xs sm:text-sm transition-all text-slate-400 hover:text-slate-200">
+                🍲 Kho Món
+            </button>
+            <button onclick="switchTab('history')" id="tab-btn-history" class="tab-btn py-2.5 px-2 rounded-xl font-bold text-xs sm:text-sm transition-all text-slate-400 hover:text-slate-200">
+                📜 Lịch Sử
+            </button>
+        </div>
+
+        <!-- ==========================================
+             TAB 1: KHUI HỘP BÍ MẬT (RANDOM MÓN)
+             ========================================== -->
+        <section id="tab-spin" class="space-y-6">
+            
+            <!-- BỘ LỌC TRƯỚC KHI MỞ HỘP -->
+            <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 sm:p-5 space-y-5 shadow-xl">
+                
+                <!-- 1. Chọn Playlist -->
+                <div>
+                    <div class="flex items-center justify-between mb-2">
+                        <label class="text-xs font-bold uppercase tracking-wider text-amber-400">
+                            1. Chọn Playlist (Bộ sưu tập)
+                        </label>
+                        <button onclick="switchTab('playlists')" class="text-xs text-amber-400 hover:underline font-medium">+ Tạo / Sửa Playlist</button>
+                    </div>
+                    <div id="spin-playlist-list" class="flex flex-wrap gap-2"></div>
+                </div>
+
+                <!-- 2. Chọn Loại Đồ Ăn -->
+                <div class="border-t border-slate-800/80 pt-4">
+                    <div class="flex items-center justify-between mb-2">
+                        <label class="text-xs font-bold uppercase tracking-wider text-amber-400">
+                            2. Loại đồ ăn (Khẩu vị)
+                        </label>
+                        <button onclick="quickAddCategoryPrompt()" class="text-xs text-slate-400 hover:text-amber-400 transition-colors">+ Thêm loại mới</button>
+                    </div>
+                    <div id="spin-category-list" class="flex flex-wrap gap-2"></div>
+                </div>
+
+                <!-- 3. Chọn Ngân Sách (Budget) -->
+                <div class="border-t border-slate-800/80 pt-4">
+                    <div class="flex items-center justify-between mb-2">
+                        <label class="text-xs font-bold uppercase tracking-wider text-amber-400">
+                            3. Ngân sách tối đa (Budget)
+                        </label>
+                        <button onclick="quickAddBudgetPrompt()" class="text-xs text-slate-400 hover:text-amber-400 transition-colors">+ Thêm mốc giá</button>
+                    </div>
+                    
+                    <div id="spin-budget-list" class="flex flex-wrap gap-2 mb-3"></div>
+
+                    <!-- Thanh trượt & Ô nhập giá tùy ý -->
+                    <div class="bg-slate-950/70 border border-slate-800/80 rounded-xl p-3 flex flex-col sm:flex-row items-center gap-3">
+                        <span class="text-xs text-slate-400 whitespace-nowrap">Hoặc tự chỉnh mức giá:</span>
+                        <div class="flex items-center gap-2 w-full">
+                            <input type="range" id="custom-budget-slider" min="10" max="300" step="5" value="100" 
+                                oninput="syncBudgetFromSlider(this.value)"
+                                class="w-full accent-amber-500 cursor-pointer h-1.5 bg-slate-800 rounded-lg">
+                            <div class="relative flex items-center">
+                                <input type="number" id="custom-budget-input" min="0" max="9999" value="100"
+                                    oninput="syncBudgetFromInput(this.value)"
+                                    class="w-20 bg-slate-900 border border-slate-700 rounded-lg px-2 py-1 text-right text-sm font-bold text-amber-400 focus:outline-none focus:border-amber-500">
+                                <span class="text-xs text-slate-400 ml-1 font-semibold">k</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Thông báo số lượng món khả dụng -->
+                <div class="bg-slate-950 border border-slate-800/80 rounded-xl px-4 py-2.5 flex items-center justify-between">
+                    <div class="text-xs text-slate-300">
+                        Đang có <span id="matching-count" class="font-extrabold text-amber-400 text-sm mx-0.5">0</span> món phù hợp trong hộp
+                    </div>
+                    <button onclick="togglePoolPreview()" class="text-xs text-slate-400 hover:text-amber-400 underline">
+                        Xem danh sách lọc
+                    </button>
+                </div>
+
+                <!-- Danh sách món đang nằm trong vòng quay (Ẩn mặc định) -->
+                <div id="pool-preview-box" class="hidden bg-slate-950/90 border border-slate-800 rounded-xl p-3 max-h-40 overflow-y-auto">
+                    <div id="pool-preview-list" class="flex flex-wrap gap-1.5"></div>
+                </div>
+            </div>
+
+            <!-- SÂN KHẤU HỘP BÍ MẬT (MYSTERY BOX STAGE) -->
+            <div class="bg-gradient-to-b from-slate-900 via-slate-900 to-slate-950 border-2 border-amber-500/30 rounded-3xl p-6 sm:p-8 text-center relative overflow-hidden shadow-2xl">
+                
+                <!-- Ánh sáng nền -->
+                <div id="stage-glow" class="pointer-events-none absolute -top-20 left-1/2 -translate-x-1/2 w-72 h-72 bg-amber-500/15 rounded-full blur-3xl transition-all duration-500"></div>
+
+                <div class="text-xs font-bold tracking-widest uppercase text-amber-400/80 mb-4 relative z-10">
+                    ✨ HỘP BÍ MẬT ẨM THỰC ✨
+                </div>
+
+                <!-- VÙNG HIỂN THỊ HỘP QUÀ (HIỆN KHI CHƯA MỞ HOẶC ĐANG LẮC) -->
+                <div id="mystery-box-container" class="my-6 min-h-[210px] flex flex-col items-center justify-center relative z-10">
+                    
+                    <!-- Đồ họa Hộp Bí Mật 3D bằng CSS -->
+                    <div id="visual-box-wrapper" class="box-floating cursor-pointer select-none" onclick="openMysteryBox()">
+                        <div class="relative w-36 h-36 mx-auto flex flex-col items-center justify-end">
+                            <!-- Hào quang phía sau hộp -->
+                            <div class="aura-glow absolute inset-0 bg-amber-500/25 rounded-full blur-xl"></div>
+
+                            <!-- Nắp hộp (Lid) -->
+                            <div id="box-lid" class="mystery-lid relative z-20 w-40 h-11 bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-500 rounded-xl shadow-lg border-2 border-amber-200/60 flex items-center justify-center">
+                                <!-- Nơ hộp quà -->
+                                <div class="absolute -top-5 flex items-center justify-center">
+                                    <div class="w-6 h-5 rounded-full border-4 border-rose-500 -mr-1 rotate-[-20deg] bg-rose-500/20"></div>
+                                    <div class="w-4 h-4 rounded-md bg-rose-600 z-10 shadow"></div>
+                                    <div class="w-6 h-5 rounded-full border-4 border-rose-500 -ml-1 rotate-[20deg] bg-rose-500/20"></div>
+                                </div>
+                                <!-- Dải ruy băng dọc trên nắp -->
+                                <div class="w-7 h-full bg-rose-600/90 border-x border-rose-400/40"></div>
+                            </div>
+
+                            <!-- Thân hộp (Body) -->
+                            <div id="box-body" class="relative z-10 w-36 h-24 -mt-1 bg-gradient-to-b from-amber-600 to-orange-700 rounded-b-2xl shadow-2xl border-2 border-t-0 border-amber-400/50 flex items-center justify-center overflow-hidden">
+                                <!-- Ruy băng dọc thân hộp -->
+                                <div class="w-7 h-full bg-rose-600/90 border-x border-rose-400/40 flex items-center justify-center">
+                                    <!-- Huy hiệu dấu hỏi giữa hộp -->
+                                    <div class="w-9 h-9 rounded-full bg-slate-950/90 border-2 border-amber-300 flex items-center justify-center text-amber-300 font-black text-lg shadow-md">
+                                        ?
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Dòng trạng thái tĩnh (Không chạy chữ món ăn khi lắc) -->
+                    <p id="box-status-text" class="text-sm text-slate-400 mt-5 font-medium">
+                        Chạm vào hộp hoặc bấm nút bên dưới để khui món định mệnh!
+                    </p>
+                </div>
+
+                <!-- VÙNG HIỂN THỊ KẾT QUẢ MÓN ĂN (CHỈ HIỆN SAU KHI HỘP ĐÃ MỞ) -->
+                <div id="dish-result-card" class="hidden my-4 relative z-10 max-w-md mx-auto">
+                    <div class="bg-slate-950/95 border-2 border-amber-500/50 rounded-3xl overflow-hidden shadow-2xl shadow-amber-500/10 text-left">
+                        
+                        <!-- Ảnh món ăn -->
+                        <div class="relative h-52 sm:h-60 w-full bg-slate-900 overflow-hidden">
+                            <img id="result-dish-img" src="" alt="Món ăn" class="w-full h-full object-cover">
+                            <div class="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/20 to-transparent"></div>
+                            
+                            <!-- Badge Loại & Giá -->
+                            <div class="absolute top-3 left-3 right-3 flex items-center justify-between">
+                                <span id="result-dish-cat" class="bg-slate-950/85 backdrop-blur-md text-slate-200 border border-slate-700 px-3 py-1 rounded-full text-xs font-bold">
+                                    Loại món
+                                </span>
+                                <span id="result-dish-price" class="bg-amber-500 text-slate-950 px-3.5 py-1 rounded-full text-sm font-black shadow-lg">
+                                    45k
+                                </span>
+                            </div>
+
+                            <!-- Tên món ăn đè lên phần dưới ảnh -->
+                            <div class="absolute bottom-3 left-4 right-4">
+                                <div class="text-[11px] font-bold uppercase tracking-wider text-amber-400">🎉 Hộp bí mật mở ra:</div>
+                                <h2 id="result-dish-name" class="text-2xl sm:text-3xl font-black text-white leading-tight drop-shadow">
+                                    Tên Món Ăn
+                                </h2>
+                            </div>
+                        </div>
+
+                        <!-- Phần Quán Ruột & Link Google Maps -->
+                        <div class="p-4 sm:p-5 space-y-3">
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+                                    📍 Địa chỉ / Quán ruột cho món này
+                                </span>
+                                <button onclick="toggleAddPlaceForm()" class="inline-flex items-center gap-1 text-xs font-bold bg-amber-500/15 hover:bg-amber-500/25 text-amber-300 border border-amber-500/30 px-2.5 py-1 rounded-lg transition-all">
+                                    <span class="text-sm leading-none">+</span> Thêm quán / Map
+                                </button>
+                            </div>
+
+                            <!-- Danh sách các quán đã lưu của món này -->
+                            <div id="result-places-list" class="flex flex-wrap gap-2"></div>
+
+                            <!-- Form thêm nhanh Tên Quán & Link Google Maps (Ẩn mặc định, hiện khi bấm dấu +) -->
+                            <div id="add-place-form" class="hidden bg-slate-900 border border-slate-800 rounded-2xl p-3.5 space-y-2.5 mt-2">
+                                <div class="text-xs font-bold text-amber-400">➕ Thêm quán ăn & Link Google Maps</div>
+                                <input type="text" id="place-name-input" placeholder="Tên quán (VD: Bún bò Đông Ba, Quán cô Tư...)"
+                                    class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-100 focus:outline-none focus:border-amber-500">
+                                <input type="text" id="place-map-input" placeholder="Dán link Google Maps (hoặc nhập địa chỉ quán)..."
+                                    class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-100 focus:outline-none focus:border-amber-500">
+                                <div class="flex justify-end gap-2 pt-1">
+                                    <button onclick="toggleAddPlaceForm(false)" class="text-xs text-slate-400 hover:text-slate-200 px-3 py-1.5">
+                                        Hủy
+                                    </button>
+                                    <button onclick="savePlaceToCurrentDish()" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs px-4 py-1.5 rounded-xl transition-all">
+                                        Lưu Quán
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Thông báo khi chốt món -->
+                            <div id="accept-feedback" class="hidden bg-emerald-500/15 border border-emerald-500/40 text-emerald-300 text-xs font-bold px-3.5 py-2.5 rounded-xl text-center">
+                                ✅ Đã chốt món này vào Lịch sử! Chúc bạn có bữa ăn thật ngon miệng!
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- NÚT HÀNH ĐỘNG CHÍNH -->
+                <div class="flex flex-col sm:flex-row items-center justify-center gap-3 mt-4 relative z-10">
+                    <button id="btn-spin" onclick="openMysteryBox()" class="w-full sm:w-auto min-w-[230px] py-3.5 px-8 rounded-2xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-slate-950 font-black text-base tracking-wide shadow-lg shadow-amber-500/25 active:scale-95 transition-all">
+                        🎁 KHUI HỘP NGAY
+                    </button>
+                    <button id="btn-accept-dish" onclick="acceptDish()" class="hidden w-full sm:w-auto py-3.5 px-6 rounded-2xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-extrabold text-sm tracking-wide shadow-lg shadow-emerald-500/20 active:scale-95 transition-all">
+                        ✅ CHỐT MÓN NÀY
+                    </button>
+                </div>
+            </div>
+
+        </section>
+
+        <!-- ==========================================
+             TAB 2: QUẢN LÝ PLAYLIST (BỘ SƯU TẬP)
+             ========================================== -->
+        <section id="tab-playlists" class="hidden space-y-6">
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5">
+                <h3 class="font-bold text-amber-400 text-base mb-1">🎵 Tạo Playlist Món Ăn Mới</h3>
+                <p class="text-xs text-slate-400 mb-4">Ví dụ: "Đồ nước", "Cơm trưa", "Ăn vặt"... Tạo xong bạn chỉ cần tích chọn các món đang có sẵn trong kho để đưa vào Playlist.</p>
+                
+                <div class="flex flex-col sm:flex-row gap-2.5">
+                    <input type="text" id="new-playlist-icon" placeholder="Icon (VD: 🍜)" maxlength="4" value="🍜"
+                        class="w-full sm:w-20 bg-slate-950 border border-slate-700 rounded-xl px-3 py-2.5 text-center text-base focus:outline-none focus:border-amber-500">
+                    <input type="text" id="new-playlist-name" placeholder="Nhập tên Playlist (VD: Hội Đồ Nước)..."
+                        class="flex-1 bg-slate-950 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-slate-100 focus:outline-none focus:border-amber-500">
+                    <button onclick="createPlaylist()" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold px-5 py-2.5 rounded-xl text-sm whitespace-nowrap transition-all">
+                        + Tạo Playlist
+                    </button>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 space-y-2 h-fit">
+                    <h4 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3">Danh sách Playlist</h4>
+                    <div id="manager-playlist-list" class="space-y-2"></div>
+                </div>
+
+                <div class="md:col-span-2 bg-slate-900 border border-slate-800 rounded-2xl p-5">
+                    <div class="border-b border-slate-800 pb-3 mb-4 flex flex-wrap items-center justify-between gap-2">
+                        <div>
+                            <span class="text-xs text-slate-400">Đang chỉnh sửa Playlist:</span>
+                            <h4 id="editing-playlist-title" class="text-lg font-extrabold text-amber-400">—</h4>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <button onclick="selectAllFilteredToPlaylist(true)" class="text-xs bg-slate-800 hover:bg-slate-700 text-amber-300 px-3 py-1.5 rounded-lg font-medium">
+                                + Chọn hết món đang lọc
+                            </button>
+                            <button onclick="selectAllFilteredToPlaylist(false)" class="text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 px-3 py-1.5 rounded-lg font-medium">
+                                Bỏ chọn hết
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="flex flex-col sm:flex-row gap-2 mb-4">
+                        <input type="text" id="playlist-dish-search" oninput="renderPlaylistDishSelector()" placeholder="🔍 Tìm tên món ăn để thêm vào playlist..."
+                            class="flex-1 bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-slate-200 focus:outline-none focus:border-amber-500">
+                        <select id="playlist-dish-cat-filter" onchange="renderPlaylistDishSelector()"
+                            class="bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-amber-500">
+                            <option value="ALL">Tất cả loại đồ ăn</option>
+                        </select>
+                    </div>
+
+                    <p class="text-[11px] text-slate-400 mb-2">💡 Bấm vào từng món bên dưới để <b>Thêm / Gỡ</b> khỏi Playlist này:</p>
+                    <div id="playlist-dish-selector" class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 max-h-96 overflow-y-auto pr-1"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ==========================================
+             TAB 3: KHO MÓN ĂN, HÌNH ẢNH, LOẠI & MỐC GIÁ
+             ========================================== -->
+        <section id="tab-database" class="hidden space-y-6">
+            
+            <!-- 1. Thêm món ăn mới (Có thêm ảnh & quán) -->
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-4">
+                <h3 class="font-bold text-amber-400 text-base">🍲 Thêm Món Ăn Mới Vào Kho</h3>
+                
+                <div class="grid grid-cols-1 sm:grid-cols-12 gap-3">
+                    <div class="sm:col-span-5">
+                        <label class="text-[11px] text-slate-400 block mb-1">Tên món ăn *</label>
+                        <input type="text" id="add-dish-name" placeholder="VD: Bún bò Huế, Cơm tấm..."
+                            class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2 text-sm text-slate-100 focus:outline-none focus:border-amber-500">
+                    </div>
+                    <div class="sm:col-span-3">
+                        <label class="text-[11px] text-slate-400 block mb-1">Mức giá (nghìn VNĐ) *</label>
+                        <div class="relative flex items-center">
+                            <input type="number" id="add-dish-price" placeholder="45" min="1" max="5000" value="45"
+                                class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2 text-sm text-slate-100 focus:outline-none focus:border-amber-500">
+                            <span class="absolute right-3 text-xs text-slate-400 font-bold">k</span>
+                        </div>
+                    </div>
+                    <div class="sm:col-span-4">
+                        <label class="text-[11px] text-slate-400 block mb-1">Loại đồ ăn</label>
+                        <select id="add-dish-category" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-100 focus:outline-none focus:border-amber-500"></select>
+                    </div>
+                </div>
+
+                <!-- Chọn hình ảnh cho món ăn -->
+                <div class="grid grid-cols-1 sm:grid-cols-12 gap-3 items-center bg-slate-950/60 border border-slate-800/80 rounded-xl p-3">
+                    <div class="sm:col-span-6">
+                        <label class="text-[11px] text-slate-400 block mb-1">🖼️ Link hình ảnh (URL) — Tùy chọn</label>
+                        <input type="text" id="add-dish-img-url" oninput="previewNewDishImage(this.value)" placeholder="Dán link ảnh hoặc tải ảnh từ máy ở ô bên cạnh..."
+                            class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-100 focus:outline-none focus:border-amber-500">
+                    </div>
+                    <div class="sm:col-span-4">
+                        <label class="text-[11px] text-slate-400 block mb-1">📁 Hoặc tải ảnh từ thiết bị</label>
+                        <input type="file" id="add-dish-img-file" accept="image/*" onchange="handleImageFileUpload(event)"
+                            class="w-full text-xs text-slate-400 file:mr-2 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-slate-800 file:text-amber-400 hover:file:bg-slate-700 cursor-pointer">
+                    </div>
+                    <div class="sm:col-span-2 flex justify-center">
+                        <div class="w-14 h-14 rounded-xl bg-slate-900 border border-slate-700 overflow-hidden flex items-center justify-center text-xs text-slate-500">
+                            <img id="add-dish-img-preview" src="" class="hidden w-full h-full object-cover">
+                            <span id="add-dish-img-placeholder">Ảnh</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tùy chọn thêm quán ruột ngay lúc tạo món -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                        <label class="text-[11px] text-slate-400 block mb-1">📍 Tên quán ruột (Tùy chọn)</label>
+                        <input type="text" id="add-dish-place-name" placeholder="VD: Cơm tấm Ba Ghiền..."
+                            class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2 text-xs text-slate-100 focus:outline-none focus:border-amber-500">
+                    </div>
+                    <div>
+                        <label class="text-[11px] text-slate-400 block mb-1">🗺️ Link Google Maps (Tùy chọn)</label>
+                        <input type="text" id="add-dish-place-map" placeholder="Dán link Google Maps hoặc địa chỉ..."
+                            class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2 text-xs text-slate-100 focus:outline-none focus:border-amber-500">
+                    </div>
+                </div>
+
+                <!-- Tùy chọn thêm thẳng vào Playlist -->
+                <div class="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-slate-800/70">
+                    <div class="flex items-center gap-2">
+                        <span class="text-xs text-slate-400">Thêm luôn vào Playlist:</span>
+                        <select id="add-dish-playlist" class="bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-amber-300 focus:outline-none">
+                            <option value="NONE">-- Không chọn (Chỉ lưu vào kho chung) --</option>
+                        </select>
+                    </div>
+                    <button onclick="addNewDish()" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold px-6 py-2.5 rounded-xl text-sm transition-all shadow-md">
+                        + Lưu Món Ăn
+                    </button>
+                </div>
+            </div>
+
+            <!-- 2. Quản lý Loại đồ ăn & Mốc Ngân sách -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4">
+                    <h4 class="font-bold text-sm text-amber-400 mb-2">🏷️ Quản lý Loại Đồ Ăn</h4>
+                    <div class="flex gap-2 mb-3">
+                        <input type="text" id="new-cat-input" placeholder="Thêm loại (VD: Đồ nước, Healthy...)"
+                            class="flex-1 bg-slate-950 border border-slate-700 rounded-xl px-3 py-1.5 text-xs text-slate-100 focus:outline-none focus:border-amber-500">
+                        <button onclick="addCategoryFromInput()" class="bg-slate-800 hover:bg-amber-500 hover:text-slate-950 text-amber-400 font-bold px-3 py-1.5 rounded-xl text-xs transition-all">
+                            + Thêm
+                        </button>
+                    </div>
+                    <div id="manage-category-tags" class="flex flex-wrap gap-1.5"></div>
+                </div>
+
+                <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4">
+                    <h4 class="font-bold text-sm text-amber-400 mb-2">💰 Quản lý Mốc Ngân Sách (Budget)</h4>
+                    <div class="flex gap-2 mb-3">
+                        <input type="number" id="new-budget-input" placeholder="Nhập mốc giá (VD: 35, 60...)" min="5" max="2000"
+                            class="flex-1 bg-slate-950 border border-slate-700 rounded-xl px-3 py-1.5 text-xs text-slate-100 focus:outline-none focus:border-amber-500">
+                        <button onclick="addBudgetFromInput()" class="bg-slate-800 hover:bg-amber-500 hover:text-slate-950 text-amber-400 font-bold px-3 py-1.5 rounded-xl text-xs transition-all">
+                            + Thêm mốc (k)
+                        </button>
+                    </div>
+                    <div id="manage-budget-tags" class="flex flex-wrap gap-1.5"></div>
+                </div>
+            </div>
+
+            <!-- 3. Danh sách toàn bộ món ăn trong kho -->
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5">
+                <div class="flex flex-wrap items-center justify-between gap-2 mb-4">
+                    <h3 class="font-bold text-slate-200 text-sm">📋 Toàn bộ món trong kho (<span id="total-dishes-count">0</span> món)</h3>
+                    <div class="flex items-center gap-2">
+                        <input type="text" id="db-search-input" oninput="renderDatabaseList()" placeholder="🔍 Tìm món..."
+                            class="bg-slate-950 border border-slate-800 rounded-lg px-3 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-amber-500">
+                        <button onclick="resetDefaultData()" class="text-xs text-rose-400 hover:underline">Khôi phục mặc định</button>
+                    </div>
+                </div>
+                <div id="database-dish-list" class="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-[450px] overflow-y-auto pr-1"></div>
+            </div>
+
+        </section>
+
+        <!-- ==========================================
+             TAB 4: LỊCH SỬ & SAO LƯU DỮ LIỆU
+             ========================================== -->
+        <section id="tab-history" class="hidden space-y-6">
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="font-bold text-amber-400 text-base">📜 Nhật Ký Mở Hộp</h3>
+                    <button onclick="clearHistory()" class="text-xs text-slate-400 hover:text-rose-400">Xóa lịch sử</button>
+                </div>
+                <div id="history-list" class="space-y-2.5 max-h-80 overflow-y-auto"></div>
+            </div>
+
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-3">
+                <h3 class="font-bold text-slate-200 text-sm">🔄 Sao lưu & Đồng bộ sang Điện thoại</h3>
+                <p class="text-xs text-slate-400">Dữ liệu được lưu tự động trên trình duyệt. Nếu bạn muốn chuyển danh sách Playlist, Món ăn và Link Quán sang thiết bị khác, hãy dùng nút Copy/Dán mã bên dưới:</p>
+                <div class="flex flex-wrap gap-2">
+                    <button onclick="exportData()" class="bg-slate-800 hover:bg-slate-700 text-amber-400 font-semibold text-xs px-4 py-2 rounded-xl border border-slate-700">
+                        📋 Copy mã dữ liệu (Export)
+                    </button>
+                    <button onclick="importDataPrompt()" class="bg-slate-800 hover:bg-slate-700 text-emerald-400 font-semibold text-xs px-4 py-2 rounded-xl border border-slate-700">
+                        📥 Dán mã dữ liệu (Import)
+                    </button>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- JAVASCRIPT LOGIC -->
+    <script>
+        const FALLBACK_IMG = "https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=600&q=80";
+
+        const DEFAULT_DATA = {
+            categories: ["Món nước", "Món khô", "Cơm", "Ăn vặt", "Đồ uống", "Ăn đêm"],
+            budgets: [30, 40, 50, 70, 100],
+            dishes: [
+                { id: "d1", name: "Bún bò Huế", price: 45, category: "Món nước", image: "https://images.unsplash.com/photo-1582878826629-29b7ad1cdc43?auto=format&fit=crop&w=600&q=80", places: [] },
+                { id: "d2", name: "Hủ tiếu Nam Vang (nước)", price: 45, category: "Món nước", image: "https://images.unsplash.com/photo-1569718212165-3a8278d5f624?auto=format&fit=crop&w=600&q=80", places: [] },
+                { id: "d3", name: "Phở bò tái nạm", price: 50, category: "Món nước", image: "https://images.unsplash.com/photo-1582878826629-29b7ad1cdc43?auto=format&fit=crop&w=600&q=80", places: [] },
+                { id: "d4", name: "Bánh canh cua", price: 45, category: "Món nước", image: "https://images.unsplash.com/photo-1555126634-323283e090fa?auto=format&fit=crop&w=600&q=80", places: [] },
+                { id: "d5", name: "Bún riêu cua ốc", price: 40, category: "Món nước", image: "https://images.unsplash.com/photo-1547592180-85f173990554?auto=format&fit=crop&w=600&q=80", places: [] },
+                { id: "d6", name: "Mì Quảng tôm thịt", price: 45, category: "Món nước", image: "https://images.unsplash.com/photo-1612929633738-8fe44f7ec841?auto=format&fit=crop&w=600&q=80", places: [] },
+                { id: "d7", name: "Cơm tấm sườn bì chả", price: 45, category: "Cơm", image: "https://images.unsplash.com/photo-1512058564366-18510be2db19?auto=format&fit=crop&w=600&q=80", places: [] },
+                { id: "d8", name: "Cơm gà xối mỡ", price: 45, category: "Cơm", image: "https://images.unsplash.com/photo-1604908176997-125f25cc6f3d?auto=format&fit=crop&w=600&q=80", places: [] },
+                { id: "d9", name: "Cơm chiên dương châu / ốp la", price: 35, category: "Cơm", image: "https://images.unsplash.com/photo-1603133872878-684f208fb84b?auto=format&fit=crop&w=600&q=80", places: [] },
+                { id: "d10", name: "Bún thịt nướng chả giò", price: 40, category: "Món khô", image: "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=600&q=80", places: [] },
+                { id: "d11", name: "Hủ tiếu khô trộn bò viên", price: 45, category: "Món khô", image: "https://images.unsplash.com/photo-1585032226651-759b368d7246?auto=format&fit=crop&w=600&q=80", places: [] },
+                { id: "d12", name: "Mì trộn muối ớt tóp mỡ", price: 35, category: "Món khô", image: "https://images.unsplash.com/photo-1612929633738-8fe44f7ec841?auto=format&fit=crop&w=600&q=80", places: [] },
+                { id: "d13", name: "Bánh mì chảo thập cẩm", price: 45, category: "Món khô", image: "https://images.unsplash.com/photo-1525351484163-7529414344d8?auto=format&fit=crop&w=600&q=80", places: [] },
+                { id: "d14", name: "Bánh mì thịt nướng / ốp la", price: 25, category: "Món khô", image: "https://images.unsplash.com/photo-1509722747041-616f39b57569?auto=format&fit=crop&w=600&q=80", places: [] },
+                { id: "d15", name: "Gỏi cuốn tôm thịt", price: 30, category: "Ăn vặt", image: "https://images.unsplash.com/photo-1534422298391-e4f8c172dddb?auto=format&fit=crop&w=600&q=80", places: [] },
+                { id: "d16", name: "Cá viên chiên mắm tỏi", price: 35, category: "Ăn vặt", image: "https://images.unsplash.com/photo-1562967914-608f82629710?auto=format&fit=crop&w=600&q=80", places: [] },
+                { id: "d17", name: "Trà sữa trân châu đường đen", price: 30, category: "Đồ uống", image: "https://images.unsplash.com/photo-1558857563-b371033873b8?auto=format&fit=crop&w=600&q=80", places: [] },
+                { id: "d18", name: "Hồng trà tắc / Trà trái cây", price: 25, category: "Đồ uống", image: "https://images.unsplash.com/photo-1556679343-c7306c1976bc?auto=format&fit=crop&w=600&q=80", places: [] },
+                { id: "d19", name: "Cháo sườn sụn nóng", price: 35, category: "Ăn đêm", image: "https://images.unsplash.com/photo-1547592166-23ac45744acd?auto=format&fit=crop&w=600&q=80", places: [] }
+            ],
+            playlists: [
+                {
+                    id: "pl_nuoc",
+                    name: "Hội Đồ Nước",
+                    icon: "🍜",
+                    dishIds: ["d1", "d2", "d3", "d4", "d5", "d6", "d19"]
+                },
+                {
+                    id: "pl_com",
+                    name: "Cơm & Đồ Khô Chắc Bụng",
+                    icon: "🍛",
+                    dishIds: ["d7", "d8", "d9", "d10", "d11", "d12", "d13", "d14"]
+                },
+                {
+                    id: "pl_tietkiem",
+                    name: "Cuối Tháng Cứu Đói",
+                    icon: "💸",
+                    dishIds: ["d9", "d12", "d14", "d15", "d16", "d18", "d19"]
+                }
+            ],
+            history: []
+        };
+
+        const STORAGE_KEY = "HOP_BI_MAT_AM_THUC_V3";
+
+        let appData = loadData();
+        let spinFilter = {
+            playlistId: "ALL",
+            category: "ALL",
+            maxBudget: 100
+        };
+        let activeEditingPlaylistId = appData.playlists.length > 0 ? appData.playlists[0].id : null;
+        let currentOpenedDishId = null;
+        let isSpinning = false;
+        let pendingUploadedImageBase64 = "";
+
+        function loadData() {
+            const raw = localStorage.getItem(STORAGE_KEY) || localStorage.getItem("KET_THO_LUN_DATA_V2");
+            if (!raw) {
+                return JSON.parse(JSON.stringify(DEFAULT_DATA));
+            }
+            try {
+                const parsed = JSON.parse(raw);
+                const dishes = (parsed.dishes || DEFAULT_DATA.dishes).map(d => ({
+                    ...d,
+                    image: d.image || FALLBACK_IMG,
+                    places: Array.isArray(d.places) ? d.places : []
+                }));
+                return {
+                    categories: parsed.categories || DEFAULT_DATA.categories,
+                    budgets: parsed.budgets || DEFAULT_DATA.budgets,
+                    dishes: dishes,
+                    playlists: parsed.playlists || DEFAULT_DATA.playlists,
+                    history: parsed.history || (parsed.rpg && parsed.rpg.history) || []
+                };
+            } catch (e) {
+                return JSON.parse(JSON.stringify(DEFAULT_DATA));
+            }
+        }
+
+        function saveData() {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(appData));
+            renderAll();
+        }
+
+        function resetDefaultData() {
+            if (confirm("Bạn có chắc muốn khôi phục toàn bộ món ăn và playlist về mặc định ban đầu không?")) {
+                appData = JSON.parse(JSON.stringify(DEFAULT_DATA));
+                activeEditingPlaylistId = appData.playlists[0].id;
+                saveData();
+            }
+        }
+
+        function switchTab(tabName) {
+            ["spin", "playlists", "database", "history"].forEach(t => {
+                document.getElementById(`tab-${t}`).classList.add("hidden");
+                const btn = document.getElementById(`tab-btn-${t}`);
+                btn.className = "tab-btn py-2.5 px-2 rounded-xl font-bold text-xs sm:text-sm transition-all text-slate-400 hover:text-slate-200";
+            });
+
+            document.getElementById(`tab-${tabName}`).classList.remove("hidden");
+            const activeBtn = document.getElementById(`tab-btn-${tabName}`);
+            activeBtn.className = "tab-btn py-2.5 px-2 rounded-xl font-bold text-xs sm:text-sm transition-all bg-amber-500 text-slate-950 shadow-md";
+            renderAll();
+        }
+
+        function getFilteredDishes() {
+            let list = appData.dishes;
+
+            if (spinFilter.playlistId !== "ALL") {
+                const pl = appData.playlists.find(p => p.id === spinFilter.playlistId);
+                if (pl) {
+                    list = list.filter(d => pl.dishIds.includes(d.id));
+                }
+            }
+
+            if (spinFilter.category !== "ALL") {
+                list = list.filter(d => d.category === spinFilter.category);
+            }
+
+            if (spinFilter.maxBudget > 0) {
+                list = list.filter(d => d.price <= spinFilter.maxBudget);
+            }
+
+            return list;
+        }
+
+        function setSpinPlaylist(id) {
+            spinFilter.playlistId = id;
+            renderSpinFilters();
+        }
+
+        function setSpinCategory(cat) {
+            spinFilter.category = cat;
+            renderSpinFilters();
+        }
+
+        function setSpinBudget(price) {
+            spinFilter.maxBudget = price;
+            if (price > 0) {
+                document.getElementById("custom-budget-slider").value = Math.min(price, 300);
+                document.getElementById("custom-budget-input").value = price;
+            }
+            renderSpinFilters();
+        }
+
+        function syncBudgetFromSlider(val) {
+            const num = parseInt(val, 10) || 0;
+            document.getElementById("custom-budget-input").value = num;
+            spinFilter.maxBudget = num;
+            renderSpinFilters();
+        }
+
+        function syncBudgetFromInput(val) {
+            const num = parseInt(val, 10) || 0;
+            document.getElementById("custom-budget-slider").value = Math.min(num, 300);
+            spinFilter.maxBudget = num;
+            renderSpinFilters();
+        }
+
+        function togglePoolPreview() {
+            document.getElementById("pool-preview-box").classList.toggle("hidden");
+        }
+
+        function openMysteryBox() {
+            if (isSpinning) return;
+            const pool = getFilteredDishes();
+
+            const boxContainer = document.getElementById("mystery-box-container");
+            const visualWrapper = document.getElementById("visual-box-wrapper");
+            const boxLid = document.getElementById("box-lid");
+            const statusText = document.getElementById("box-status-text");
+            const resultCard = document.getElementById("dish-result-card");
+            const acceptBtn = document.getElementById("btn-accept-dish");
+            const spinBtn = document.getElementById("btn-spin");
+            const feedbackEl = document.getElementById("accept-feedback");
+
+            if (pool.length === 0) {
+                boxContainer.classList.remove("hidden");
+                resultCard.classList.add("hidden");
+                acceptBtn.classList.add("hidden");
+                statusText.innerHTML = `<span class="text-rose-400 font-bold">Hộp đang trống! Không có món nào khớp với Playlist và mức giá này. Hãy tăng ngân sách hoặc thêm món nhé!</span>`;
+                return;
+            }
+
+            isSpinning = true;
+
+            // Đưa hộp về trạng thái đóng và bắt đầu lắc
+            resultCard.classList.add("hidden");
+            resultCard.classList.remove("dish-card-reveal");
+            acceptBtn.classList.add("hidden");
+            feedbackEl.classList.add("hidden");
+            toggleAddPlaceForm(false);
+
+            boxContainer.classList.remove("hidden");
+            boxLid.classList.remove("lid-opened");
+            visualWrapper.classList.remove("box-floating");
+            visualWrapper.classList.add("box-shaking");
+
+            // Không chạy chữ tên món dưới hộp khi đang lắc
+            statusText.textContent = "Đang lắc hộp bí mật...";
+            spinBtn.disabled = true;
+            spinBtn.classList.add("opacity-70");
+
+            // Chọn ngẫu nhiên món ăn
+            const chosenDish = pool[Math.floor(Math.random() * pool.length)];
+            currentOpenedDishId = chosenDish.id;
+
+            // Sau 1.1 giây lắc hộp -> Bung nắp hộp
+            setTimeout(() => {
+                visualWrapper.classList.remove("box-shaking");
+                boxLid.classList.add("lid-opened");
+                statusText.textContent = "Bùm! Hộp đã mở!";
+
+                // Sau khi nắp bung 0.35 giây -> Hiện thẻ món ăn và thông tin
+                setTimeout(() => {
+                    boxContainer.classList.add("hidden");
+                    renderOpenedDishCard();
+                    resultCard.classList.remove("hidden");
+                    resultCard.classList.add("dish-card-reveal");
+
+                    acceptBtn.classList.remove("hidden");
+                    spinBtn.disabled = false;
+                    spinBtn.classList.remove("opacity-70");
+                    spinBtn.textContent = "🔄 KHUI HỘP KHÁC";
+                    isSpinning = false;
+                }, 350);
+            }, 1100);
+        }
+
+        function renderOpenedDishCard() {
+            const dish = appData.dishes.find(d => d.id === currentOpenedDishId);
+            if (!dish) return;
+
+            const imgEl = document.getElementById("result-dish-img");
+            imgEl.src = dish.image || FALLBACK_IMG;
+            imgEl.onerror = () => { imgEl.src = FALLBACK_IMG; };
+
+            document.getElementById("result-dish-name").textContent = dish.name;
+            document.getElementById("result-dish-cat").textContent = dish.category;
+            document.getElementById("result-dish-price").textContent = `${dish.price}k`;
+
+            const placesContainer = document.getElementById("result-places-list");
+            const places = dish.places || [];
+
+            if (places.length === 0) {
+                placesContainer.innerHTML = `
+                    <span class="text-xs text-slate-500 italic">Chưa lưu quán nào cho món này. Bấm nút <b>+ Thêm quán / Map</b> để lưu quán ruột của bạn nhé!</span>
+                `;
+            } else {
+                placesContainer.innerHTML = places.map((pl, idx) => {
+                    const mapUrl = formatMapUrl(pl.mapUrl || pl.name);
+                    return `
+                        <div class="inline-flex items-center gap-1.5 bg-slate-900 border border-slate-700 hover:border-amber-500/60 px-3 py-1.5 rounded-xl text-xs transition-all">
+                            <a href="${mapUrl}" target="_blank" rel="noopener noreferrer" class="font-bold text-amber-400 hover:underline flex items-center gap-1">
+                                <span>🗺️ ${pl.name}</span>
+                                <span class="text-[10px] text-slate-400">↗</span>
+                            </a>
+                            <button onclick="removePlaceFromCurrentDish(${idx})" class="text-slate-500 hover:text-rose-400 ml-1 font-bold" title="Xóa quán này">×</button>
+                        </div>
+                    `;
+                }).join("");
+            }
+        }
+
+        function formatMapUrl(input) {
+            const trimmed = (input || "").trim();
+            if (!trimmed) return "https://www.google.com/maps";
+            if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) {
+                return trimmed;
+            }
+            return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(trimmed)}`;
+        }
+
+        function toggleAddPlaceForm(forceState) {
+            const form = document.getElementById("add-place-form");
+            const show = typeof forceState === "boolean" ? forceState : form.classList.contains("hidden");
+            if (show) {
+                form.classList.remove("hidden");
+                document.getElementById("place-name-input").focus();
+            } else {
+                form.classList.add("hidden");
+                document.getElementById("place-name-input").value = "";
+                document.getElementById("place-map-input").value = "";
+            }
+        }
+
+        function savePlaceToCurrentDish() {
+            if (!currentOpenedDishId) return;
+            const dish = appData.dishes.find(d => d.id === currentOpenedDishId);
+            if (!dish) return;
+
+            const name = document.getElementById("place-name-input").value.trim();
+            const mapUrl = document.getElementById("place-map-input").value.trim();
+
+            if (!name) {
+                alert("Vui lòng nhập tên quán ăn!");
+                return;
+            }
+
+            if (!Array.isArray(dish.places)) dish.places = [];
+            dish.places.push({
+                name: name,
+                mapUrl: mapUrl || name
+            });
+
+            toggleAddPlaceForm(false);
+            saveData();
+            renderOpenedDishCard();
+        }
+
+        function removePlaceFromCurrentDish(index) {
+            const dish = appData.dishes.find(d => d.id === currentOpenedDishId);
+            if (!dish || !Array.isArray(dish.places)) return;
+            dish.places.splice(index, 1);
+            saveData();
+            renderOpenedDishCard();
+        }
+
+        function acceptDish() {
+            const dish = appData.dishes.find(d => d.id === currentOpenedDishId);
+            if (!dish) return;
+
+            appData.history.unshift({
+                name: dish.name,
+                price: dish.price,
+                category: dish.category,
+                image: dish.image || FALLBACK_IMG,
+                time: new Date().toLocaleString("vi-VN")
+            });
+            if (appData.history.length > 50) appData.history.pop();
+
+            document.getElementById("btn-accept-dish").classList.add("hidden");
+            document.getElementById("accept-feedback").classList.remove("hidden");
+            saveData();
+        }
+
+        function previewNewDishImage(url) {
+            const imgEl = document.getElementById("add-dish-img-preview");
+            const placeholderEl = document.getElementById("add-dish-img-placeholder");
+            const cleanUrl = (url || "").trim();
+
+            if (cleanUrl) {
+                pendingUploadedImageBase64 = "";
+                imgEl.src = cleanUrl;
+                imgEl.classList.remove("hidden");
+                placeholderEl.classList.add("hidden");
+            } else if (!pendingUploadedImageBase64) {
+                imgEl.classList.add("hidden");
+                placeholderEl.classList.remove("hidden");
+            }
+        }
+
+        function handleImageFileUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            compressImageFile(file, (base64) => {
+                pendingUploadedImageBase64 = base64;
+                const imgEl = document.getElementById("add-dish-img-preview");
+                const placeholderEl = document.getElementById("add-dish-img-placeholder");
+                imgEl.src = base64;
+                imgEl.classList.remove("hidden");
+                placeholderEl.classList.add("hidden");
+            });
+        }
+
+        function compressImageFile(file, callback) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = new Image();
+                img.onload = function() {
+                    const canvas = document.createElement("canvas");
+                    const maxWidth = 500;
+                    const scale = Math.min(1, maxWidth / img.width);
+                    canvas.width = img.width * scale;
+                    canvas.height = img.height * scale;
+                    const ctx = canvas.getContext("2d");
+                    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                    const compressed = canvas.toDataURL("image/jpeg", 0.78);
+                    callback(compressed);
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function changeDishImagePrompt(dishId) {
+            const dish = appData.dishes.find(d => d.id === dishId);
+            if (!dish) return;
+            const newUrl = prompt("Dán đường dẫn (URL) hình ảnh mới cho món " + dish.name + ":", dish.image || "");
+            if (newUrl !== null && newUrl.trim() !== "") {
+                dish.image = newUrl.trim();
+                saveData();
+                if (currentOpenedDishId === dishId) renderOpenedDishCard();
+            }
+        }
+
+        function quickAddPlaceInDatabase(dishId) {
+            const dish = appData.dishes.find(d => d.id === dishId);
+            if (!dish) return;
+            const placeName = prompt(`Nhập tên quán cho món "${dish.name}":`);
+            if (!placeName || !placeName.trim()) return;
+            const mapLink = prompt(`Dán link Google Maps (hoặc địa chỉ) của quán "${placeName.trim()}":`, "");
+            if (!Array.isArray(dish.places)) dish.places = [];
+            dish.places.push({
+                name: placeName.trim(),
+                mapUrl: (mapLink && mapLink.trim()) ? mapLink.trim() : placeName.trim()
+            });
+            saveData();
+        }
+
+        function createPlaylist() {
+            const nameInput = document.getElementById("new-playlist-name");
+            const iconInput = document.getElementById("new-playlist-icon");
+            const name = nameInput.value.trim();
+            const icon = iconInput.value.trim() || "🎵";
+
+            if (!name) {
+                alert("Vui lòng nhập tên Playlist (ví dụ: Đồ nước)!");
+                return;
+            }
+
+            const newPl = {
+                id: "pl_" + Date.now(),
+                name: name,
+                icon: icon,
+                dishIds: []
+            };
+
+            appData.playlists.push(newPl);
+            activeEditingPlaylistId = newPl.id;
+            nameInput.value = "";
+            saveData();
+        }
+
+        function selectPlaylistToEdit(id) {
+            activeEditingPlaylistId = id;
+            renderPlaylistManager();
+        }
+
+        function deletePlaylist(id, event) {
+            event.stopPropagation();
+            if (!confirm("Xóa Playlist này? (Các món ăn trong kho chung vẫn được giữ nguyên)")) return;
+            appData.playlists = appData.playlists.filter(p => p.id !== id);
+            if (spinFilter.playlistId === id) spinFilter.playlistId = "ALL";
+            if (activeEditingPlaylistId === id) {
+                activeEditingPlaylistId = appData.playlists.length > 0 ? appData.playlists[0].id : null;
+            }
+            saveData();
+        }
+
+        function toggleDishInActivePlaylist(dishId) {
+            const pl = appData.playlists.find(p => p.id === activeEditingPlaylistId);
+            if (!pl) return;
+
+            const idx = pl.dishIds.indexOf(dishId);
+            if (idx === -1) {
+                pl.dishIds.push(dishId);
+            } else {
+                pl.dishIds.splice(idx, 1);
+            }
+            saveData();
+        }
+
+        function selectAllFilteredToPlaylist(shouldAdd) {
+            const pl = appData.playlists.find(p => p.id === activeEditingPlaylistId);
+            if (!pl) return;
+
+            const search = (document.getElementById("playlist-dish-search").value || "").toLowerCase();
+            const cat = document.getElementById("playlist-dish-cat-filter").value;
+
+            const matchingDishes = appData.dishes.filter(d => {
+                const matchName = d.name.toLowerCase().includes(search);
+                const matchCat = cat === "ALL" || d.category === cat;
+                return matchName && matchCat;
+            });
+
+            matchingDishes.forEach(d => {
+                const exists = pl.dishIds.includes(d.id);
+                if (shouldAdd && !exists) pl.dishIds.push(d.id);
+                if (!shouldAdd && exists) pl.dishIds = pl.dishIds.filter(id => id !== d.id);
+            });
+
+            saveData();
+        }
+
+        function addNewDish() {
+            const nameEl = document.getElementById("add-dish-name");
+            const priceEl = document.getElementById("add-dish-price");
+            const catEl = document.getElementById("add-dish-category");
+            const imgUrlEl = document.getElementById("add-dish-img-url");
+            const placeNameEl = document.getElementById("add-dish-place-name");
+            const placeMapEl = document.getElementById("add-dish-place-map");
+            const plEl = document.getElementById("add-dish-playlist");
+
+            const name = nameEl.value.trim();
+            const price = parseInt(priceEl.value, 10);
+            const category = catEl.value;
+            const targetPlaylistId = plEl.value;
+            const imageSource = pendingUploadedImageBase64 || imgUrlEl.value.trim() || FALLBACK_IMG;
+
+            if (!name || isNaN(price) || price <= 0) {
+                alert("Vui lòng nhập tên món và mức giá hợp lệ!");
+                return;
+            }
+
+            const places = [];
+            if (placeNameEl.value.trim()) {
+                places.push({
+                    name: placeNameEl.value.trim(),
+                    mapUrl: placeMapEl.value.trim() || placeNameEl.value.trim()
+                });
+            }
+
+            const newDish = {
+                id: "d_" + Date.now(),
+                name,
+                price,
+                category,
+                image: imageSource,
+                places
+            };
+
+            appData.dishes.unshift(newDish);
+
+            if (targetPlaylistId !== "NONE") {
+                const pl = appData.playlists.find(p => p.id === targetPlaylistId);
+                if (pl && !pl.dishIds.includes(newDish.id)) {
+                    pl.dishIds.push(newDish.id);
+                }
+            }
+
+            nameEl.value = "";
+            imgUrlEl.value = "";
+            placeNameEl.value = "";
+            placeMapEl.value = "";
+            document.getElementById("add-dish-img-file").value = "";
+            pendingUploadedImageBase64 = "";
+            document.getElementById("add-dish-img-preview").classList.add("hidden");
+            document.getElementById("add-dish-img-placeholder").classList.remove("hidden");
+
+            saveData();
+            alert(`Đã thêm món "${name}" vào kho thành công!`);
+        }
+
+        function deleteDish(id) {
+            if (!confirm("Bạn muốn xóa món ăn này khỏi kho?")) return;
+            appData.dishes = appData.dishes.filter(d => d.id !== id);
+            appData.playlists.forEach(pl => {
+                pl.dishIds = pl.dishIds.filter(dId => dId !== id);
+            });
+            saveData();
+        }
+
+        function addCategoryFromInput() {
+            const input = document.getElementById("new-cat-input");
+            const val = input.value.trim();
+            if (!val) return;
+            if (!appData.categories.includes(val)) {
+                appData.categories.push(val);
+            }
+            input.value = "";
+            saveData();
+        }
+
+        function quickAddCategoryPrompt() {
+            const val = prompt("Nhập tên Loại đồ ăn mới (VD: Đồ nước, Đồ nướng, Healthy...):");
+            if (val && val.trim()) {
+                const clean = val.trim();
+                if (!appData.categories.includes(clean)) {
+                    appData.categories.push(clean);
+                    spinFilter.category = clean;
+                    saveData();
+                }
+            }
+        }
+
+        function deleteCategory(cat) {
+            if (appData.categories.length <= 1) {
+                alert("Cần giữ lại ít nhất 1 loại đồ ăn!");
+                return;
+            }
+            appData.categories = appData.categories.filter(c => c !== cat);
+            if (spinFilter.category === cat) spinFilter.category = "ALL";
+            saveData();
+        }
+
+        function addBudgetFromInput() {
+            const input = document.getElementById("new-budget-input");
+            const val = parseInt(input.value, 10);
+            if (isNaN(val) || val <= 0) return;
+            if (!appData.budgets.includes(val)) {
+                appData.budgets.push(val);
+                appData.budgets.sort((a, b) => a - b);
+            }
+            input.value = "";
+            saveData();
+        }
+
+        function quickAddBudgetPrompt() {
+            const val = prompt("Nhập mốc ngân sách mới (đơn vị nghìn VNĐ, VD: 35, 65, 120):");
+            const num = parseInt(val, 10);
+            if (!isNaN(num) && num > 0) {
+                if (!appData.budgets.includes(num)) {
+                    appData.budgets.push(num);
+                    appData.budgets.sort((a, b) => a - b);
+                }
+                setSpinBudget(num);
+                saveData();
+            }
+        }
+
+        function deleteBudget(b) {
+            appData.budgets = appData.budgets.filter(item => item !== b);
+            saveData();
+        }
+
+        function clearHistory() {
+            appData.history = [];
+            saveData();
+        }
+
+        function exportData() {
+            const str = JSON.stringify(appData);
+            navigator.clipboard.writeText(str).then(() => {
+                alert("Đã copy mã dữ liệu vào bộ nhớ tạm! Bạn có thể dán (Import) vào trình duyệt trên điện thoại.");
+            }).catch(() => {
+                prompt("Hãy copy đoạn mã dưới đây:", str);
+            });
+        }
+
+        function importDataPrompt() {
+            const raw = prompt("Dán đoạn mã dữ liệu (JSON) bạn đã copy vào đây:");
+            if (!raw) return;
+            try {
+                const parsed = JSON.parse(raw);
+                if (parsed.dishes && parsed.playlists) {
+                    appData = parsed;
+                    saveData();
+                    alert("Đã nhập dữ liệu Playlist và Món ăn thành công!");
+                } else {
+                    alert("Mã dữ liệu không hợp lệ!");
+                }
+            } catch (e) {
+                alert("Lỗi định dạng mã dữ liệu!");
+            }
+        }
+
+        function renderSpinFilters() {
+            const plContainer = document.getElementById("spin-playlist-list");
+            let plHtml = `
+                <button onclick="setSpinPlaylist('ALL')" class="px-3.5 py-2 rounded-xl text-xs font-bold transition-all border ${spinFilter.playlistId === 'ALL' ? 'bg-amber-500 text-slate-950 border-amber-400 shadow-md' : 'bg-slate-950 text-slate-300 border-slate-800 hover:border-slate-700'}">
+                    📦 Tất cả kho món (${appData.dishes.length})
+                </button>
+            `;
+            appData.playlists.forEach(pl => {
+                const isActive = spinFilter.playlistId === pl.id;
+                plHtml += `
+                    <button onclick="setSpinPlaylist('${pl.id}')" class="px-3.5 py-2 rounded-xl text-xs font-bold transition-all border ${isActive ? 'bg-amber-500 text-slate-950 border-amber-400 shadow-md' : 'bg-slate-950 text-slate-300 border-slate-800 hover:border-slate-700'}">
+                        ${pl.icon} ${pl.name} (${pl.dishIds.length})
+                    </button>
+                `;
+            });
+            plContainer.innerHTML = plHtml;
+
+            const catContainer = document.getElementById("spin-category-list");
+            let catHtml = `
+                <button onclick="setSpinCategory('ALL')" class="px-3 py-1.5 rounded-xl text-xs font-semibold transition-all border ${spinFilter.category === 'ALL' ? 'bg-amber-500/20 text-amber-300 border-amber-500' : 'bg-slate-950 text-slate-400 border-slate-800 hover:text-slate-200'}">
+                    Tất cả loại
+                </button>
+            `;
+            appData.categories.forEach(cat => {
+                const isActive = spinFilter.category === cat;
+                catHtml += `
+                    <button onclick="setSpinCategory('${cat}')" class="px-3 py-1.5 rounded-xl text-xs font-semibold transition-all border ${isActive ? 'bg-amber-500/20 text-amber-300 border-amber-500' : 'bg-slate-950 text-slate-400 border-slate-800 hover:text-slate-200'}">
+                        ${cat}
+                    </button>
+                `;
+            });
+            catContainer.innerHTML = catHtml;
+
+            const budgetContainer = document.getElementById("spin-budget-list");
+            let budgetHtml = `
+                <button onclick="setSpinBudget(0)" class="px-3 py-1.5 rounded-xl text-xs font-semibold transition-all border ${spinFilter.maxBudget === 0 ? 'bg-amber-500 text-slate-950 border-amber-400 font-bold' : 'bg-slate-950 text-slate-400 border-slate-800 hover:text-slate-200'}">
+                    ♾️ Không giới hạn
+                </button>
+            `;
+            appData.budgets.forEach(b => {
+                const isActive = spinFilter.maxBudget === b;
+                budgetHtml += `
+                    <button onclick="setSpinBudget(${b})" class="px-3 py-1.5 rounded-xl text-xs font-semibold transition-all border ${isActive ? 'bg-amber-500 text-slate-950 border-amber-400 font-bold' : 'bg-slate-950 text-slate-400 border-slate-800 hover:text-slate-200'}">
+                        ≤ ${b}k
+                    </button>
+                `;
+            });
+            budgetContainer.innerHTML = budgetHtml;
+
+            const filtered = getFilteredDishes();
+            document.getElementById("matching-count").textContent = filtered.length;
+
+            const previewList = document.getElementById("pool-preview-list");
+            if (filtered.length === 0) {
+                previewList.innerHTML = `<span class="text-xs text-slate-500 italic">Không có món nào thỏa mãn bộ lọc hiện tại.</span>`;
+            } else {
+                previewList.innerHTML = filtered.map(d => `
+                    <span class="text-[11px] bg-slate-900 border border-slate-800 px-2.5 py-1 rounded-lg text-slate-300">
+                        ${d.name} <b class="text-amber-400">${d.price}k</b>
+                    </span>
+                `).join("");
+            }
+        }
+
+        function renderPlaylistManager() {
+            const listEl = document.getElementById("manager-playlist-list");
+            if (appData.playlists.length === 0) {
+                listEl.innerHTML = `<p class="text-xs text-slate-500 italic">Chưa có Playlist nào. Hãy tạo một Playlist ở khung phía trên!</p>`;
+                document.getElementById("editing-playlist-title").textContent = "Chưa chọn Playlist";
+                document.getElementById("playlist-dish-selector").innerHTML = "";
+                return;
+            }
+
+            if (!activeEditingPlaylistId || !appData.playlists.some(p => p.id === activeEditingPlaylistId)) {
+                activeEditingPlaylistId = appData.playlists[0].id;
+            }
+
+            listEl.innerHTML = appData.playlists.map(pl => {
+                const isSelected = pl.id === activeEditingPlaylistId;
+                return `
+                    <div onclick="selectPlaylistToEdit('${pl.id}')" class="cursor-pointer p-3 rounded-xl border transition-all flex items-center justify-between ${isSelected ? 'bg-amber-500/15 border-amber-500 text-amber-300' : 'bg-slate-950 border-slate-800 text-slate-300 hover:border-slate-700'}">
+                        <div class="flex items-center gap-2.5">
+                            <span class="text-lg">${pl.icon}</span>
+                            <div>
+                                <div class="font-bold text-xs sm:text-sm">${pl.name}</div>
+                                <div class="text-[11px] text-slate-400">${pl.dishIds.length} món đã chọn</div>
+                            </div>
+                        </div>
+                        <button onclick="deletePlaylist('${pl.id}', event)" class="text-slate-500 hover:text-rose-400 p-1 text-xs" title="Xóa Playlist">✕</button>
+                    </div>
+                `;
+            }).join("");
+
+            const catFilterEl = document.getElementById("playlist-dish-cat-filter");
+            const currentCatVal = catFilterEl.value || "ALL";
+            catFilterEl.innerHTML = `<option value="ALL">Tất cả loại đồ ăn</option>` + 
+                appData.categories.map(c => `<option value="${c}">${c}</option>`).join("");
+            catFilterEl.value = appData.categories.includes(currentCatVal) ? currentCatVal : "ALL";
+
+            renderPlaylistDishSelector();
+        }
+
+        function renderPlaylistDishSelector() {
+            const activePl = appData.playlists.find(p => p.id === activeEditingPlaylistId);
+            const selectorEl = document.getElementById("playlist-dish-selector");
+            const titleEl = document.getElementById("editing-playlist-title");
+
+            if (!activePl) return;
+            titleEl.textContent = `${activePl.icon} ${activePl.name} (${activePl.dishIds.length} món)`;
+
+            const search = (document.getElementById("playlist-dish-search").value || "").toLowerCase();
+            const catFilter = document.getElementById("playlist-dish-cat-filter").value;
+
+            const filteredDishes = appData.dishes.filter(d => {
+                const matchName = d.name.toLowerCase().includes(search);
+                const matchCat = catFilter === "ALL" || d.category === catFilter;
+                return matchName && matchCat;
+            });
+
+            if (filteredDishes.length === 0) {
+                selectorEl.innerHTML = `<p class="text-xs text-slate-500 col-span-2 py-4 text-center">Không tìm thấy món ăn nào khớp từ khóa.</p>`;
+                return;
+            }
+
+            selectorEl.innerHTML = filteredDishes.map(d => {
+                const isChecked = activePl.dishIds.includes(d.id);
+                return `
+                    <div onclick="toggleDishInActivePlaylist('${d.id}')" class="cursor-pointer p-2 rounded-xl border transition-all flex items-center justify-between gap-2 select-none ${isChecked ? 'bg-emerald-500/15 border-emerald-500/60 text-emerald-200' : 'bg-slate-950 border-slate-800/90 text-slate-400 hover:border-slate-700'}">
+                        <div class="flex items-center gap-2.5 min-w-0">
+                            <img src="${d.image || FALLBACK_IMG}" onerror="this.src='${FALLBACK_IMG}'" class="w-10 h-10 rounded-lg object-cover shrink-0 border border-slate-800">
+                            <div class="truncate">
+                                <div class="text-xs font-semibold truncate ${isChecked ? 'text-slate-100' : 'text-slate-300'}">${d.name}</div>
+                                <div class="text-[10px] text-slate-500">${d.category} · <span class="text-amber-400 font-bold">${d.price}k</span></div>
+                            </div>
+                        </div>
+                        <div class="w-5 h-5 rounded-md flex items-center justify-center text-xs font-bold shrink-0 ${isChecked ? 'bg-emerald-500 text-slate-950' : 'border border-slate-700'}">
+                            ${isChecked ? '✓' : ''}
+                        </div>
+                    </div>
+                `;
+            }).join("");
+        }
+
+        function renderDatabaseTab() {
+            const catSelect = document.getElementById("add-dish-category");
+            catSelect.innerHTML = appData.categories.map(c => `<option value="${c}">${c}</option>`).join("");
+
+            const plSelect = document.getElementById("add-dish-playlist");
+            plSelect.innerHTML = `<option value="NONE">-- Không chọn (Chỉ lưu vào kho chung) --</option>` +
+                appData.playlists.map(p => `<option value="${p.id}">${p.icon} ${p.name}</option>`).join("");
+
+            document.getElementById("manage-category-tags").innerHTML = appData.categories.map(c => `
+                <span class="inline-flex items-center gap-1.5 bg-slate-950 border border-slate-800 px-2.5 py-1 rounded-lg text-xs text-slate-300">
+                    ${c}
+                    <button onclick="deleteCategory('${c}')" class="text-slate-500 hover:text-rose-400 font-bold">×</button>
+                </span>
+            `).join("");
+
+            document.getElementById("manage-budget-tags").innerHTML = appData.budgets.map(b => `
+                <span class="inline-flex items-center gap-1.5 bg-slate-950 border border-slate-800 px-2.5 py-1 rounded-lg text-xs text-amber-400 font-semibold">
+                    ≤ ${b}k
+                    <button onclick="deleteBudget(${b})" class="text-slate-500 hover:text-rose-400 font-bold">×</button>
+                </span>
+            `).join("");
+
+            renderDatabaseList();
+        }
+
+        function renderDatabaseList() {
+            const search = (document.getElementById("db-search-input").value || "").toLowerCase();
+            const list = appData.dishes.filter(d => d.name.toLowerCase().includes(search) || d.category.toLowerCase().includes(search));
+            document.getElementById("total-dishes-count").textContent = appData.dishes.length;
+
+            const container = document.getElementById("database-dish-list");
+            container.innerHTML = list.map(d => {
+                const placeCount = Array.isArray(d.places) ? d.places.length : 0;
+                return `
+                    <div class="bg-slate-950 border border-slate-800/90 rounded-2xl p-3 flex items-center justify-between gap-3">
+                        <div class="flex items-center gap-3 min-w-0">
+                            <img src="${d.image || FALLBACK_IMG}" onerror="this.src='${FALLBACK_IMG}'" class="w-14 h-14 rounded-xl object-cover shrink-0 border border-slate-800">
+                            <div class="min-w-0">
+                                <div class="text-xs sm:text-sm font-bold text-slate-100 truncate">${d.name}</div>
+                                <div class="text-[11px] text-slate-400 mt-0.5">
+                                    <span class="text-amber-400 font-bold">${d.price}k</span> · ${d.category}
+                                </div>
+                                <div class="flex items-center gap-2 mt-1">
+                                    <button onclick="changeDishImagePrompt('${d.id}')" class="text-[10px] text-slate-400 hover:text-amber-400 underline">🖼️ Đổi ảnh</button>
+                                    <button onclick="quickAddPlaceInDatabase('${d.id}')" class="text-[10px] text-amber-400/90 hover:underline">📍 +Quán (${placeCount})</button>
+                                </div>
+                            </div>
+                        </div>
+                        <button onclick="deleteDish('${d.id}')" class="text-xs text-slate-500 hover:text-rose-400 px-2 py-1 shrink-0">Xóa</button>
+                    </div>
+                `;
+            }).join("");
+        }
+
+        function renderHistoryTab() {
+            const container = document.getElementById("history-list");
+            if (!appData.history || appData.history.length === 0) {
+                container.innerHTML = `<p class="text-xs text-slate-500 italic">Chưa có món nào được chốt. Hãy mở hộp và chốt món nhé!</p>`;
+                return;
+            }
+            container.innerHTML = appData.history.map(item => `
+                <div class="bg-slate-950 border border-slate-800 rounded-xl p-3 flex items-center justify-between gap-3">
+                    <div class="flex items-center gap-3">
+                        <img src="${item.image || FALLBACK_IMG}" onerror="this.src='${FALLBACK_IMG}'" class="w-11 h-11 rounded-xl object-cover border border-slate-800">
+                        <div>
+                            <div class="text-xs font-bold text-amber-300">${item.name}</div>
+                            <div class="text-[11px] text-slate-400">${item.category} · ${item.price}k</div>
+                        </div>
+                    </div>
+                    <div class="text-[11px] text-slate-500 font-mono">${item.time}</div>
+                </div>
+            `).join("");
+        }
+
+        function renderAll() {
+            renderSpinFilters();
+            renderPlaylistManager();
+            renderDatabaseTab();
+            renderHistoryTab();
+        }
+
+        renderAll();
+    </script>
+</body>
+</html>
